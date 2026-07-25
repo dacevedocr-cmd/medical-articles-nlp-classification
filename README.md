@@ -1,44 +1,44 @@
-# Medical Article Classification by Category
+# Clasificación de Artículos Médicos por Categoría
 
-An NLP project comparing different text representations and classification models to categorize scientific medical articles (Nutrition, Exercise, Fasting) from a small corpus of PDF documents.
+Proyecto de NLP que compara distintas representaciones de texto y modelos de clasificación para categorizar artículos científicos médicos (Nutrición, Ejercicio, Ayuno) a partir de un corpus reducido de documentos PDF.
 
-## The real problem behind the project
+## El problema real detrás del proyecto
 
-Beyond "classifying text," the core goal of this project was methodological: **with a very small corpus (16 documents), how reliable are a classification model's results, really?** The project is designed end-to-end to answer that question rigorously, not just to maximize a metric.
+Más allá de "clasificar texto", el objetivo central de este proyecto fue metodológico: **con un corpus muy pequeño (16 documentos), ¿qué tan confiables son realmente los resultados de un modelo de clasificación?** El proyecto está diseñado de punta a punta para responder eso con rigor, no solo para maximizar una métrica.
 
-## Phase 1 — Corpus exploration and data quality
+## Fase 1 — Exploración del corpus y calidad de datos
 
-Original corpus of 20 PDF documents, reduced to 16 after detecting and removing an exact duplicate. The reasoning matters here: keeping a duplicate document in the corpus creates *data leakage* if, by chance, one copy lands in the training set and the other in the test set — the model would memorize the exact text instead of learning to generalize, artificially inflating the final result.
+Corpus original de 20 documentos PDF, reducido a 16 tras detectar y eliminar un duplicado exacto. La justificación es importante: mantener un documento duplicado en el corpus genera *data leakage* si, por azar, una copia cae en el set de entrenamiento y la otra en el de prueba — el modelo memorizaría el texto exacto en vez de aprender a generalizar, inflando artificialmente el resultado.
 
-## Phase 2 — Preprocessing (with justification for each technique)
+## Fase 2 — Preprocesamiento (con justificación de cada técnica)
 
-Every text-cleaning technique (lowercasing, special character removal, etc.) was documented by explaining what problem it solves and how it affects the final result — preprocessing wasn't applied "by habit" without understanding its effect.
+Cada técnica de limpieza de texto (minúsculas, eliminación de caracteres especiales, etc.) se documentó explicando qué problema resuelve y cómo afecta el resultado final — no se aplicó preprocesamiento "por costumbre" sin entender su efecto.
 
-## Phase 3 — Text representations
+## Fase 3 — Representaciones textuales
 
-Four different representations of the same text were built and compared:
+Se construyeron y compararon 4 representaciones distintas del mismo texto:
 
-| Representation | Type | Core idea |
+| Representación | Tipo | Idea central |
 |---|---|---|
-| **BoW** (Bag of Words) | Sparse | Counts word frequency, simple and robust |
-| **TF-IDF** | Sparse | Like BoW, but down-weights words that are common across documents |
-| **Word2Vec** | Dense | Semantic embeddings trained on the corpus itself |
-| **BERT** | Dense | Pretrained embeddings via transfer learning |
+| **BoW** (Bolsa de Palabras) | Dispersa | Cuenta frecuencia de palabras, simple y robusta |
+| **TF-IDF** | Dispersa | Como BoW, pero le baja peso a palabras muy comunes entre documentos |
+| **Word2Vec** | Densa | Embeddings semánticos entrenados sobre el propio corpus |
+| **BERT** | Densa | Embeddings preentrenados con transferencia de aprendizaje |
 
-## Phase 4 — Modeling
+## Fase 4 — Modelado
 
-- **Logistic Regression** on each of the 4 representations (fixed vector per text, no notion of word order)
-- **RNN and LSTM** as sequential models, processing text word by word while maintaining an internal state — in theory capable of capturing order and context, but with more parameters to learn from very little available data
+- **Regresión Logística** sobre cada una de las 4 representaciones (vector fijo por texto, sin noción de orden entre palabras)
+- **RNN y LSTM** como modelos secuenciales, procesando el texto palabra por palabra y manteniendo un estado interno — en teoría capaces de capturar orden y contexto, pero con más parámetros para aprender con muy pocos datos disponibles
 
-## Phase 5 — Evaluation
+## Fase 5 — Evaluación
 
-Accuracy, Precision, Recall and F1 were measured, with one key methodological decision: since the classes are imbalanced (Nutrition ≫ Exercise ≫ Fasting), Precision/Recall/F1 are calculated using **macro averaging**, not weighted or micro. This gives equal weight to each category regardless of how many examples it has, preventing strong performance on the majority class from masking poor performance on minority classes.
+Se midieron Accuracy, Precision, Recall y F1, con una decisión metodológica clave: dado que las clases están desbalanceadas (Nutrición ≫ Ejercicio ≫ Ayuno), Precision/Recall/F1 se calculan con **promedio macro**, no weighted ni micro. Esto le da el mismo peso a cada categoría sin importar cuántos ejemplos tenga, evitando que un buen desempeño en la clase mayoritaria oculte un mal desempeño en las minoritarias.
 
-## Phase 6 — Results and conclusions
+## Fase 6 — Resultados y conclusiones
 
-**With a single train/test split:**
+**Con split único (train/test):**
 
-| Model | F1 (macro) |
+| Modelo | F1 (macro) |
 |---|---|
 | BERT | 0.849 |
 | BoW | 0.834 |
@@ -47,19 +47,19 @@ Accuracy, Precision, Recall and F1 were measured, with one key methodological de
 | LSTM | 0.275 |
 | Word2Vec | 0.262 |
 
-**Key finding:** LSTM had a relatively high Accuracy (0.701) despite a very low F1 (0.275). This happens because the model collapsed to predicting the majority class ("Nutrition") almost every time, getting it right by sheer frequency without actually distinguishing between categories — a real-world example of why Accuracy alone can be misleading with imbalanced classes, and why macro F1 was prioritized from the experiment's design onward.
+**Hallazgo clave:** LSTM tuvo un Accuracy relativamente alto (0.701) a pesar de su F1 bajísimo (0.275). Esto pasa porque el modelo colapsó a predecir casi siempre la clase mayoritaria ("Nutrición"), acertando por pura frecuencia sin distinguir realmente entre categorías — un ejemplo real de por qué el Accuracy solo puede ser engañoso con clases desbalanceadas, y por qué se priorizó F1 macro desde el diseño del experimento.
 
-**Additional validation with Leave-One-Out Cross-Validation** (evaluating document by document, not with a single split): the real accuracy of BoW and BERT dropped to 0.661 and 0.632 respectively, with very high variability between documents. This confirms that the strong result from the single split was partly influenced by which specific documents landed in train vs. test, and is not a reliable measure of how well the model would generalize to new data.
+**Validación adicional con Leave-One-Out Cross-Validation** (evaluando documento por documento, no con un solo split): el accuracy real de BoW y BERT cayó a 0.661 y 0.632 respectivamente, con altísima variabilidad entre documentos. Esto confirma que el buen resultado del split único estuvo parcialmente influenciado por qué documentos específicos cayeron en train vs. test, y que no es una medida confiable de qué tan bien generalizaría el modelo con datos nuevos.
 
-**Overall conclusion:** with a corpus of only 16 documents, simple and robust representations (BoW) or pretrained ones using transfer learning (BERT) substantially outperformed representations that need to learn from scratch with little data (Word2Vec, RNN, LSTM). A larger corpus would be needed to draw more solid conclusions about which approach is truly "best."
+**Conclusión general:** con un corpus de solo 16 documentos, las representaciones simples y robustas (BoW) o preentrenadas con transferencia de aprendizaje (BERT) superaron ampliamente a las que necesitan aprender una representación desde cero con pocos datos (Word2Vec, RNN, LSTM). Un corpus más grande sería necesario para conclusiones más sólidas sobre qué enfoque es realmente "mejor".
 
-## Tech stack
+## Stack técnico
 
 - **Python** — pandas, numpy, scikit-learn
-- **sentence-transformers** (BERT) for pretrained embeddings
-- **TensorFlow/Keras** for RNN and LSTM
-- **scikit-learn** — `LogisticRegression`, `LeaveOneGroupOut`, classification metrics
+- **sentence-transformers** (BERT) para embeddings preentrenados
+- **TensorFlow/Keras** para RNN y LSTM
+- **scikit-learn** — `LogisticRegression`, `LeaveOneGroupOut`, métricas de clasificación
 
-## Why it's in my portfolio
+## Por qué lo incluyo en mi portafolio
 
-Not because of the best model's score, but because of the process: identifying data leakage risk before modeling, justifying every preprocessing decision, choosing the right metric for the problem (macro F1 over Accuracy on an imbalanced dataset), and validating results with a second methodology (LOO-CV) instead of trusting a single train/test split. That discipline of questioning your own results is, in my opinion, more valuable than any single accuracy number.
+No por el resultado del mejor modelo, sino por el proceso: identificar riesgo de data leakage antes de modelar, justificar cada decisión de preprocesamiento, elegir la métrica correcta para el problema (macro F1 sobre Accuracy en un dataset desbalanceado), y validar los resultados con una segunda metodología (LOO-CV) en lugar de confiar en un único split train/test. Esa disciplina de cuestionar los propios resultados es, en mi opinión, más valiosa que cualquier número de accuracy aislado.
