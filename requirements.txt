@@ -1,0 +1,9 @@
+pandas
+numpy
+matplotlib
+scikit-learn
+PyMuPDF
+nltk
+gensim
+sentence-transformers
+tensorflow
